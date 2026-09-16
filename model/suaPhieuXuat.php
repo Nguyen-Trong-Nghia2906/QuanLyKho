@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Trừ hoặc cập nhật kho
             // Lưu ý: nếu update số lượng, bạn cần tính lại chênh lệch để trừ kho cho đúng
             // Ví dụ:
-            
+
             if ($check > 0) {
                 // Lấy số lượng cũ
                 $oldData = mysqli_fetch_assoc($checkResult);
@@ -59,11 +59,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($chenhLech != 0) {
                     $updateKho = "UPDATE vattu SET soluong = soluong - '$chenhLech' WHERE id = '$idVT'";
                     mysqli_query($conn, $updateKho);
+
+                    //Lấy số lượng tồn sau khi cập nhật
+                    $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+                    $result = mysqli_query($conn, $sql);
+                    $row = mysqli_fetch_assoc($result);
+                    $tonluyke = $row['soluong'];
+
+                    //Cập nhật tồn luỹ kế
+                    $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+                    mysqli_query($conn, $updateLuyke);
                 }
             } else {
                 // Trường hợp mới → trừ thẳng
                 $updateKho = "UPDATE vattu SET soluong = soluong - '$sl' WHERE id = '$idVT'";
                 mysqli_query($conn, $updateKho);
+
+                //Lấy số lượng tồn sau khi cập nhật
+                $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+                $result = mysqli_query($conn, $sql);
+                $row = mysqli_fetch_assoc($result);
+                $tonluyke = $row['soluong'];
+
+                //Cập nhật tồn luỹ kế
+                $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+                mysqli_query($conn, $updateLuyke);
             }
         }
 

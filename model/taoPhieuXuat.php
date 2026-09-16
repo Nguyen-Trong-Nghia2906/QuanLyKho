@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $idNhanVien = $_POST['nguoi_de_nghi']; // hoặc lấy từ session đăng nhập
   $ngayXuat = $_POST['ngay_xuat'];
   $maphieu = $_POST['so_phieu'];
-  isset($_POST['ghichu'])? $ghichu = $_POST['ghichu'] : $ghichu = "";
+  isset($_POST['ghichu']) ? $ghichu = $_POST['ghichu'] : $ghichu = "";
 
   $idVattuArr = $_POST['idvt'] ?? [];
   $soLuongArr = $_POST['soluong'] ?? [];
@@ -44,6 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // Trừ số lượng tồn kho (nếu cần)
       $updateKho = "UPDATE vattu SET soluong = soluong - '$sl' WHERE id = '$idVT'";
       mysqli_query($conn, $updateKho);
+
+      //Lấy số lượng tồn sau khi cập nhật
+      $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+      $result = mysqli_query($conn, $sql);
+      $row = mysqli_fetch_assoc($result);
+      $tonluyke = $row['soluong'];
+
+      //Cập nhật tồn luỹ kế
+      $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+      mysqli_query($conn, $updateLuyke);
     }
 
     if ($thanhCong) {

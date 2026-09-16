@@ -27,7 +27,12 @@ if (mysqli_query($conn, $sql)) {
     $id = mysqli_insert_id($conn);
     $res = mysqli_query($conn, "SELECT * FROM vattu WHERE id = $id");
     $row = mysqli_fetch_assoc($res);
-?>
+
+    //Thêm mới vào tồn đầu kỳ
+    $sql = "INSERT INTO ton_dauky (id_vattu, soluong)
+        VALUES ('$id', 0)";
+    mysqli_query($conn, $sql);
+    ?>
     <tr data-id="<?php echo $row['id']; ?>">
 
 
@@ -40,7 +45,7 @@ if (mysqli_query($conn, $sql)) {
         <td class="text-nowrap">
             <?php
             if ($_SESSION['quyen'] == 1) {
-            ?>
+                ?>
                 <button data-id="<?php echo $row['id'] ?>" data-bs-toggle="modal" data-bs-target="#lichSuXuatModal"
                     class="btn_lichsu btn btn-sm btn-outline-success" title="Lịch sử">
                     <i class="bi bi-clock-history"></i>
@@ -53,7 +58,7 @@ if (mysqli_query($conn, $sql)) {
                 <button data-id="<?php echo $row['id'] ?>" class="btn_remove btn btn-sm btn-outline-danger" title="Xóa">
                     <i class="bi bi-trash"></i>
                 </button>
-            <?php
+                <?php
             }
             ?>
 

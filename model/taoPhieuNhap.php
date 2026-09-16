@@ -36,9 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         break;
       }
 
-      // Cộng số lượng tồn kho (nếu cần)
+      // Cộng số lượng tồn kho
       $updateKho = "UPDATE vattu SET soluong = soluong + '$sl' WHERE id = '$idVT'";
       mysqli_query($conn, $updateKho);
+
+      //Lấy số lượng tồn sau khi cập nhật
+      $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+      $result = mysqli_query($conn, $sql);
+      $row = mysqli_fetch_assoc($result);
+      $tonluyke = $row['soluong'];
+
+      //Cập nhật tồn luỹ kế
+      $updateLuyke = "UPDATE chitiet_phieunhap SET ton_luyke = '$tonluyke' WHERE id_phieunhap = '$id_phieunhap' AND id_vattu = '$idVT'";
+      mysqli_query($conn, $updateLuyke);
     }
 
     if ($thanhCong) {
