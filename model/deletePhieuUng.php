@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = intval($_POST['id']);
 
     // Kiểm tra phiếu có tồn tại không
-    $check = mysqli_query($conn, "SELECT id FROM phieuung WHERE id = $id");
+    $check = mysqli_query($conn, "SELECT id, ngayung FROM phieuung WHERE id = $id");
     if (mysqli_num_rows($check) == 0) {
         echo 'not_found';
         exit;
@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $sql = "SELECT id_vattu, soluong FROM chitiet_phieuung WHERE id_phieuung = $id";
     $result = mysqli_query($conn, $sql);
 
+    $ngayung = mysqli_fetch_assoc($check);
+    $date_check = '2026-09-16';
     while ($row = mysqli_fetch_assoc($result)) {
         $id_vattu = $row['id_vattu'];
         $soluong = $row['soluong'];
@@ -25,6 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             SET soluong = soluong + $soluong
             WHERE id = $id_vattu
         ");
+
+        //Thêm số lượng vào mốc tồn đầu kỳ khi phiếu ứng trước 16-09
+        if ($ngayung['ngayung'] < $date_check) {
+            mysqli_query($conn, "
+            UPDATE ton_dauky
+            SET soluong = soluong + $soluong
+            WHERE id_vattu = $id_vattu
+        ");
+        }
     }
 
     // Xóa chi tiết phiếu
