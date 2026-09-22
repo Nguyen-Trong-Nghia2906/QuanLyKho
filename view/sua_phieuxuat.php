@@ -5,7 +5,7 @@ if ($_SESSION['quyen'] == 1) {
     $sql = "SELECT * FROM  phieuxuat  WHERE id = $id";
     $result = mysqli_query($conn, $sql);
     $px = mysqli_fetch_assoc($result);
-?>
+    ?>
     <style>
         #goi-y-vattu {
             max-height: 300px;
@@ -39,6 +39,43 @@ if ($_SESSION['quyen'] == 1) {
             }
         }
     </style>
+    <!-- Modal Thêm mới -->
+    <div class="modal fade" id="modalThemMoiPXK" tabindex="-1" aria-labelledby="modalThemMoiLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form id="form-them-moi-PXK">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalThemMoiLabel">Thêm phiếu xuất kế toán</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="dsThemMoiPX" class="row g-3">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Lưu</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Lịch sử phiếu xuất kho -->
+    <div class="modal fade" id="modalLichSuPXK" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">📜 Lịch sử vật tư</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="dsLichSuPX">
+                    Đang tải dữ liệu...
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <h4 class="mb-4">Chỉnh Sửa Phiếu Xuất Vật Tư</h4>
 
@@ -51,7 +88,7 @@ if ($_SESSION['quyen'] == 1) {
             </div>
             <div class="col-md-3 col-6">
                 <label class="form-label">Ngày</label>
-                <input type="date" value="<?php echo $px['ngayxuat'] ?>" name="ngay_xuat" class="form-control" value="<?= date('Y-m-d') ?>">
+                <input type="date" value="<?php echo $px['ngayxuat'] ?>" name="ngay_xuat" class="form-control">
             </div>
             <div class="col-md-3 col-6">
                 <label class="form-label">Tổ</label>
@@ -73,7 +110,8 @@ if ($_SESSION['quyen'] == 1) {
             <div class="col-md-3 col-6">
                 <label class="form-label">Người đề nghị</label>
                 <select name="nguoi_de_nghi" class="form-select">
-                    <option value="<?php echo  $px['id_nhanvien'] ?>"> <?php echo  getNameNV($conn, $px['id_nhanvien']); ?> </option>
+                    <option value="<?php echo $px['id_nhanvien'] ?>"> <?php echo getNameNV($conn, $px['id_nhanvien']); ?>
+                    </option>
                 </select>
             </div>
             <div class="col-md-3 col-6">
@@ -97,6 +135,7 @@ if ($_SESSION['quyen'] == 1) {
                         <th>Tồn kho</th>
                         <th>SL Xuất</th>
                         <th>Mục đích</th>
+                        <th>Còn lại</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -106,17 +145,45 @@ if ($_SESSION['quyen'] == 1) {
 
                     while ($ct = mysqli_fetch_array($result2)) {
                         $max = getSlVT($conn, $ct['id_vattu']) + $ct['soluong'];
-                    ?>
+                        ?>
                         <tr data-id="<?php echo $ct['id_vattu'] ?>">
-                            <td><?php echo getMaVT($conn, $ct['id_vattu']) ?><input type="hidden" name="idvt[]" value="<?php echo $ct['id_vattu'] ?>"></td>
+                            <td><?php echo getMaVT($conn, $ct['id_vattu']) ?><input type="hidden" name="idvt[]"
+                                    value="<?php echo $ct['id_vattu'] ?>"></td>
                             <td><?php echo getTenVT($conn, $ct['id_vattu']) ?></td>
                             <td><?php echo getDvtVT($conn, $ct['id_vattu']) ?></td>
-                            <td><?php echo getSlVT($conn, $ct['id_vattu']) ?><input type="hidden" class="sl-kho" value="<?php echo $max ?>"></td>
-                            <td><input name="soluong[]" type="number" value="<?php echo $ct['soluong'] ?>" min="0" step="0.01" max="<?php echo $max; ?>" class="form-control sl-xuat" required></td>
-                            <td><input name="mucdich[]" type="text" value="<?php echo $ct['mucdich'] ?>" class="form-control"></td>
-                            <td><button data-idPX="<?php echo $px['id'] ?>" data-vattu="<?php echo $ct['id_vattu'] ?>" type="button" class="btn btn-sm btn-danger xoa-vattu-xuat">X</button></td>
+                            <td><?php echo getSlVT($conn, $ct['id_vattu']) ?><input type="hidden" class="sl-kho"
+                                    value="<?php echo $max ?>"></td>
+                            <td><input name="soluong[]" type="number" value="<?php echo $ct['soluong'] ?>" min="0" step="0.01"
+                                    max="<?php echo $max; ?>" class="form-control sl-xuat" required></td>
+                            <td><input name="mucdich[]" type="text" value="<?php echo $ct['mucdich'] ?>" class="form-control">
+                            </td>
+                            <td class="d-flex">
+                                <input name="soluong[]" disabled type="number" value="<?php echo $ct['xuat_kho'] ?>" min="0"
+                                    step="0.01" max="<?php echo $max; ?>" class="form-control sl-xuat" required>
+                                <?php
+                                if ($ct['xuat_kho'] > 0) {
+                                    ?>
+                                    <button data-idPX="<?php echo $px['id'] ?>" data-idVattu="<?php echo $ct['id_vattu'] ?>"
+                                        class="btn_themPXK btn btn-sm btn-success me-1 ms-1" title="Thêm mới"
+                                        type="button">+</button>
+                                    <?php
+                                }
+                                ?>
+
+                                <button data-idPX="<?php echo $px['id'] ?>" data-idVattu="<?php echo $ct['id_vattu'] ?>"
+                                    class="btn_lichsuPXK btn btn-sm btn-warning" title="Lịch sử" type="button"><i
+                                        class="bi bi-eye"></i></button>
+                            </td>
+                            <td>
+                                <button data-idPX="<?php echo $px['id'] ?>" data-vattu="<?php echo $ct['id_vattu'] ?>"
+                                    type="button" class="btn btn-sm btn-danger xoa-vattu-xuat">X</button>
+
+
+
+                            </td>
+
                         </tr>
-                    <?php
+                        <?php
                     }
                     ?>
 
@@ -129,9 +196,14 @@ if ($_SESSION['quyen'] == 1) {
     </form>
 
 
+
+
     <script>
         let element = document.getElementById('phieuxuat');
         element.classList.add('active');
     </script>
 
-<?php  } ?>
+
+
+
+<?php } ?>

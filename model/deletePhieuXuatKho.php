@@ -3,16 +3,17 @@ include '../model/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = intval($_POST['id']);
-
+    $idpx = intval($_POST['idpx']);
     // Kiểm tra phiếu có tồn tại không
-    $check = mysqli_query($conn, "SELECT id FROM phieuxuat WHERE id = $id");
+    $check = mysqli_query($conn, "SELECT id FROM phieuxuat_kho WHERE id = $id");
     if (mysqli_num_rows($check) == 0) {
-        echo 'not_found';
+    echo "SELECT id FROM phieuxuat_kho WHERE id = $id";
+    echo 'not_found';
         exit;
     }
 
     // Lấy chi tiết vật tư trong phiếu để cộng lại vào kho
-    $sql = "SELECT id_vattu, soluong FROM chitiet_phieuxuat WHERE id_phieuxuat = $id";
+    $sql = "SELECT id_vattu, soluong FROM chitiet_phieuxuatkho WHERE id_phieuxuatkho = $id";
     $result = mysqli_query($conn, $sql);
 
     while ($row = mysqli_fetch_assoc($result)) {
@@ -21,23 +22,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
 
         // Cộng lại số lượng vào bảng vật tư
         mysqli_query($conn, "
-            UPDATE vattu
-            SET soluong = soluong + $soluong
-            WHERE id = $id_vattu
+            UPDATE chitiet_phieuxuat
+            SET xuat_kho = xuat_kho + $soluong
+            WHERE id_vattu = $id_vattu AND id_phieuxuat = '$idpx'
         ");
     }
 
+    mysqli_query($conn, "
+            UPDATE phieuxuat
+            SET trang_thai = 0
+            WHERE id = '$idpx'
+        ");
+
     // Xóa chi tiết phiếu
-    $xoaCT = mysqli_query($conn, "DELETE FROM chitiet_phieuxuat WHERE id_phieuxuat = $id");
+    $xoaCT = mysqli_query($conn, "DELETE FROM chitiet_phieuxuatkho WHERE id_phieuxuatkho = $id");
 
     // Xóa phiếu xuất
-    $xoaPhieu = mysqli_query($conn, "DELETE FROM phieuxuat WHERE id = $id");
-
-
-    $xoaCTXK = mysqli_query($conn, "DELETE ct FROM chitiet_phieuxuatkho ct JOIN phieuxuat_kho pxk ON ct.id_phieuxuatkho = pxk.id WHERE id_phieuxuat = $id");
-
-    $xoaXK = mysqli_query($conn, "DELETE FROM phieuxuat_kho WHERE id_phieuxuat = $id");
-    
+    $xoaPhieu = mysqli_query($conn, "DELETE FROM phieuxuat_kho WHERE id = $id");
 
     if ($xoaCT && $xoaPhieu) {
         echo 'success';

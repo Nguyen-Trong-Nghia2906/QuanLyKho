@@ -44,6 +44,12 @@ switch ($v) {
     case 'tonghop':
         include('tonghop.php');
         break;
+    case 'phieuxuat_kho':
+        include('phieuxuat_kho.php');
+        break;
+    case 'sua_phieuxuatkho':
+        include('sua_phieuxuatkho.php');
+        break;
     case 'logout':
         session_destroy();
         echo "<script>window.location.href='index.php';</script>";

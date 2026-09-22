@@ -1,5 +1,7 @@
 <?php
 include '../model/config.php';
+include '../model/ham.php';
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Lấy dữ liệu từ form
@@ -38,8 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
             } else {
                 // Nếu chưa có → INSERT
-                $sqlChiTiet = "INSERT INTO chitiet_phieuxuat (id_phieuxuat, id_vattu, soluong, mucdich) 
-                       VALUES ('$id_phieuxuat', '$idVT', '$sl', '$md')";
+                $sqlChiTiet = "INSERT INTO chitiet_phieuxuat (id_phieuxuat, id_vattu, soluong, mucdich, xuat_kho) 
+                       VALUES ('$id_phieuxuat', '$idVT', '$sl', '$md', '$sl')";
+
+                mysqli_query($conn, "UPDATE `phieuxuat` SET `trang_thai` = 0 WHERE id = '$id_phieuxuat'");
+
+
             }
 
             if (!mysqli_query($conn, $sqlChiTiet)) {
@@ -58,32 +64,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $chenhLech = $sl - $slCu; // dương: xuất thêm, âm: trả lại
                 if ($chenhLech != 0) {
                     $updateKho = "UPDATE vattu SET soluong = soluong - '$chenhLech' WHERE id = '$idVT'";
+                    $updatePX = "UPDATE chitiet_phieuxuat SET xuat_kho = xuat_kho + '$chenhLech' WHERE id_vattu = '$idVT' AND id_phieuxuat = '$id_phieuxuat'";
                     mysqli_query($conn, $updateKho);
+                    mysqli_query($conn, $updatePX);
 
-                    //Lấy số lượng tồn sau khi cập nhật
-                    $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
-                    $result = mysqli_query($conn, $sql);
-                    $row = mysqli_fetch_assoc($result);
-                    $tonluyke = $row['soluong'];
 
-                    //Cập nhật tồn luỹ kế
-                    $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
-                    mysqli_query($conn, $updateLuyke);
+                    if($chenhLech > 0){
+                        mysqli_query($conn, "UPDATE `phieuxuat` SET `trang_thai` = 0 WHERE id = '$id_phieuxuat'");
+                    }
+                    if (checkTrangThaiCTPX($conn, $id_phieuxuat) == 0) {
+                        mysqli_query($conn, "UPDATE `phieuxuat` SET `trang_thai` = 1 WHERE id = '$id_phieuxuat'");
+                    }
+                    // //Lấy số lượng tồn sau khi cập nhật
+                    // $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+                    // $result = mysqli_query($conn, $sql);
+                    // $row = mysqli_fetch_assoc($result);
+                    // $tonluyke = $row['soluong'];
+
+                    // //Cập nhật tồn luỹ kế
+                    // $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+                    // mysqli_query($conn, $updateLuyke);
                 }
             } else {
                 // Trường hợp mới → trừ thẳng
                 $updateKho = "UPDATE vattu SET soluong = soluong - '$sl' WHERE id = '$idVT'";
                 mysqli_query($conn, $updateKho);
 
-                //Lấy số lượng tồn sau khi cập nhật
-                $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
-                $result = mysqli_query($conn, $sql);
-                $row = mysqli_fetch_assoc($result);
-                $tonluyke = $row['soluong'];
+                if (checkTrangThaiCTPX($conn, $id_phieuxuat) == 0) {
+                    mysqli_query($conn, "UPDATE `phieuxuat` SET `trang_thai` = 1 WHERE id = '$id_phieuxuat'");
+                }
 
-                //Cập nhật tồn luỹ kế
-                $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
-                mysqli_query($conn, $updateLuyke);
+                // //Lấy số lượng tồn sau khi cập nhật
+                // $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+                // $result = mysqli_query($conn, $sql);
+                // $row = mysqli_fetch_assoc($result);
+                // $tonluyke = $row['soluong'];
+
+                // //Cập nhật tồn luỹ kế
+                // $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+                // mysqli_query($conn, $updateLuyke);
             }
         }
 

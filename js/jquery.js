@@ -695,7 +695,7 @@ $(document).ready(function () {
             method: 'POST',
             data: { id: idCanXoa },
             success: function (response) {
-                if (response == 'success') {
+                if (response.trim() === 'success') {
                     let row = $('tr[data-id="' + idCanXoa + '"]');
                     row.next('.details').remove(); // Xóa dòng chi tiết
                     row.remove();                      // Xóa dòng phiếu
@@ -727,7 +727,7 @@ $(document).ready(function () {
             method: 'POST',
             data: { id: idCanXoa },
             success: function (response) {
-                if (response == 'success') {
+                if (response.trim() == 'success') {
                     let row = $('tr[data-id="' + idCanXoa + '"]');
                     row.next('.details').remove(); // Xóa dòng chi tiết
                     row.remove();                      // Xóa dòng phiếu
@@ -777,6 +777,38 @@ $(document).ready(function () {
     });
 
 
+    //xóa phiếu xuất kho
+    $(document).on('click', '.xoa_phieuxuatkho', function () {
+        idCanXoa = $(this).data('id'); // Lưu ID để xóa
+        idpx = $(this).data('idpx');
+        $('#modalXacNhanXoa').modal('show');
+    });
+
+    $('#xacNhanXoaPXK').on('click', function () {
+        if (!idCanXoa) return;
+
+        $.ajax({
+            url: 'model/deletePhieuXuatKho.php',
+            method: 'POST',
+            data: { id: idCanXoa, idpx: idpx },
+            success: function (response) {
+                if (response.trim() === 'success') {
+                    let row = $('tr[data-id="' + idCanXoa + '"]');
+                    row.next('.details').remove(); // Xóa dòng chi tiết
+                    row.remove();                      // Xóa dòng phiếu
+                    $('#modalXacNhanXoa').modal('hide');
+                    showToast('Xóa thành công', 'success');
+                } else {
+                    alert('Xóa thất bại. Vui lòng thử lại!');
+                }
+            },
+            error: function () {
+                alert('Có lỗi xảy ra khi gửi yêu cầu xóa.');
+            }
+        });
+        $('#modalXacNhanXoa').modal('hide');
+    });
+
 
     //tìm phiếu xuất
     $(document).on('change', '#tim_to', function () {
@@ -785,6 +817,8 @@ $(document).ready(function () {
         let ten_nv = $('#tim_nhanvien').val();
         let ngayxuat = $('#tim_ngayxuat').val();
         let ten_vt = $('#tim_vattu').val();
+
+        let trangthai = $('#tim_trangthai').val();
         $.ajax({
             url: "model/searchPhieuXuat.php",
             type: "POST",
@@ -793,7 +827,34 @@ $(document).ready(function () {
                 ten_nv: ten_nv,
                 ngayxuat: ngayxuat,
                 ten_vt: ten_vt,
-                maphieu: maphieu
+                maphieu: maphieu,
+                trangthai: trangthai
+            },
+            success: function (res) {
+                $('tbody').html(res);
+
+            }
+        })
+    });
+
+    $(document).on('change', '#tim_trangthai', function () {
+        let to = $('#tim_to').val();
+        let maphieu = $('#tim_maphieu').val();
+        let ten_nv = $('#tim_nhanvien').val();
+        let ngayxuat = $('#tim_ngayxuat').val();
+        let ten_vt = $('#tim_vattu').val();
+
+        let trangthai = $('#tim_trangthai').val();
+        $.ajax({
+            url: "model/searchPhieuXuat.php",
+            type: "POST",
+            data: {
+                id_to: to,
+                ten_nv: ten_nv,
+                ngayxuat: ngayxuat,
+                ten_vt: ten_vt,
+                maphieu: maphieu,
+                trangthai: trangthai
             },
             success: function (res) {
                 $('tbody').html(res);
@@ -805,14 +866,15 @@ $(document).ready(function () {
 
     $(document).on('input', '#tim_nhanvien', function () {
         clearTimeout(timer);
-let to = $('#tim_to').val();
-            let maphieu = $('#tim_maphieu').val();
-            let ngayxuat = $('#tim_ngayxuat').val();
-            let ten_vt = $('#tim_vattu').val();
+        let to = $('#tim_to').val();
+        let maphieu = $('#tim_maphieu').val();
+        let ngayxuat = $('#tim_ngayxuat').val();
+        let ten_vt = $('#tim_vattu').val();
+        let trangthai = $('#tim_trangthai').val();
         timer = setTimeout(function () {
-            
+
             let ten_nv = $('#tim_nhanvien').val();
-            
+
 
             $.ajax({
                 url: "model/searchPhieuXuat.php",
@@ -822,7 +884,8 @@ let to = $('#tim_to').val();
                     ten_nv: ten_nv,
                     ngayxuat: ngayxuat,
                     ten_vt: ten_vt,
-                    maphieu: maphieu
+                    maphieu: maphieu,
+                    trangthai: trangthai
                 },
                 success: function (res) {
                     $('tbody').html(res);
@@ -833,14 +896,17 @@ let to = $('#tim_to').val();
 
     $(document).on('input', '#tim_maphieu', function () {
         clearTimeout(timer);
-let to = $('#tim_to').val();
-let ten_nv = $('#tim_nhanvien').val();
-            let ngayxuat = $('#tim_ngayxuat').val();
-            let ten_vt = $('#tim_vattu').val();
+        let to = $('#tim_to').val();
+        let ten_nv = $('#tim_nhanvien').val();
+        let ngayxuat = $('#tim_ngayxuat').val();
+        let ten_vt = $('#tim_vattu').val();
+        let trangthai = $('#tim_trangthai').val();
         timer = setTimeout(function () {
-            
+
             let maphieu = $('#tim_maphieu').val();
-            
+            if (maphieu === '/' || maphieu.length < 2) {
+                return;
+            }
 
             $.ajax({
                 url: "model/searchPhieuXuat.php",
@@ -850,13 +916,14 @@ let ten_nv = $('#tim_nhanvien').val();
                     ten_nv: ten_nv,
                     ngayxuat: ngayxuat,
                     ten_vt: ten_vt,
-                    maphieu: maphieu
+                    maphieu: maphieu,
+                    trangthai: trangthai
                 },
                 success: function (res) {
                     $('tbody').html(res);
                 }
             });
-        }, 500); // CHỈ tìm sau khi người dùng dừng gõ 350ms
+        }, 1000); // CHỈ tìm sau khi người dùng dừng gõ 350ms
     });
 
     $(document).on('change', '#tim_ngayxuat', function () {
@@ -865,6 +932,7 @@ let ten_nv = $('#tim_nhanvien').val();
         let ten_nv = $('#tim_nhanvien').val();
         let ngayxuat = $('#tim_ngayxuat').val();
         let ten_vt = $('#tim_vattu').val();
+        let trangthai = $('#tim_trangthai').val();
         $.ajax({
             url: "model/searchPhieuXuat.php",
             type: "POST",
@@ -873,7 +941,8 @@ let ten_nv = $('#tim_nhanvien').val();
                 ten_nv: ten_nv,
                 ngayxuat: ngayxuat,
                 ten_vt: ten_vt,
-                maphieu: maphieu
+                maphieu: maphieu,
+                trangthai: trangthai
             },
             success: function (res) {
                 $('tbody').html(res);
@@ -884,12 +953,13 @@ let ten_nv = $('#tim_nhanvien').val();
 
     $(document).on('keyup', '#tim_vattu', function () {
         clearTimeout(timer);
-let to = $('#tim_to').val();
-            let maphieu = $('#tim_maphieu').val();
-            let ten_nv = $('#tim_nhanvien').val();
-            let ngayxuat = $('#tim_ngayxuat').val();
+        let to = $('#tim_to').val();
+        let maphieu = $('#tim_maphieu').val();
+        let ten_nv = $('#tim_nhanvien').val();
+        let ngayxuat = $('#tim_ngayxuat').val();
+        let trangthai = $('#tim_trangthai').val();
         timer = setTimeout(function () {
-            
+
             let ten_vt = $('#tim_vattu').val();
 
             $.ajax({
@@ -900,7 +970,8 @@ let to = $('#tim_to').val();
                     ten_nv: ten_nv,
                     ngayxuat: ngayxuat,
                     ten_vt: ten_vt,
-                    maphieu: maphieu
+                    maphieu: maphieu,
+                    trangthai: trangthai
                 },
                 success: function (res) {
                     $('tbody').html(res);
@@ -934,7 +1005,7 @@ let to = $('#tim_to').val();
 
 
     $(document).on('keyup', '#tim_nhanvien_ung', function () {
-       clearTimeout(timer);
+        clearTimeout(timer);
 
         timer = setTimeout(function () {
             let to = $('#tim_to_ung').val();
@@ -1076,6 +1147,117 @@ let to = $('#tim_to').val();
             })
         }, 500); // CHỈ tìm sau khi người dùng dừng gõ 350ms
     });
+
+
+
+    //tìm kiếm phiếu xuất kho
+    $(document).on('input', '#tim_maphieuXK', function () {
+        // alert('s')
+        clearTimeout(timer);
+        let to = $('#tim_toXK').val();
+        let ten_vt = $('#tim_vattuXK').val();
+        let maphieu = $('#tim_maphieuXK').val();
+        let sophieu = $('#tim_sophieuXK').val();
+        timer = setTimeout(function () {
+
+            let maphieu = $('#tim_maphieuXK').val();
+            // if (maphieu === '/' || maphieu.length < 2) {
+            //     return;
+            // }
+
+            $.ajax({
+                url: "model/searchPhieuXuatKho.php",
+                type: "POST",
+                data: {
+                    id_to: to,
+                    ten_vt: ten_vt,
+                    maphieu: maphieu,
+                    sophieu: sophieu
+                },
+                success: function (res) {
+                    $('tbody').html(res);
+                }
+            });
+        }, 1000); // CHỈ tìm sau khi người dùng dừng gõ 350ms
+    });
+
+    $(document).on('input', '#tim_sophieuXK', function () {
+        clearTimeout(timer);
+        let to = $('#tim_toXK').val();
+        let ten_vt = $('#tim_vattuXK').val();
+        let maphieu = $('#tim_maphieuXK').val();
+        let sophieu = $('#tim_sophieuXK').val();
+        timer = setTimeout(function () {
+
+            let sophieu = $('#tim_sophieuXK').val();
+            // if (sophieu === '/' || sophieu.length < 1) {
+            //     return;
+            // }
+
+            $.ajax({
+                url: "model/searchPhieuXuatKho.php",
+                type: "POST",
+                data: {
+                    id_to: to,
+                    ten_vt: ten_vt,
+                    maphieu: maphieu,
+                    sophieu: sophieu
+                },
+                success: function (res) {
+                    $('tbody').html(res);
+                }
+            });
+        }, 1000); // CHỈ tìm sau khi người dùng dừng gõ 350ms
+    });
+
+
+    $(document).on('change', '#tim_toXK', function () {
+        let to = $('#tim_toXK').val();
+        let ten_vt = $('#tim_vattuXK').val();
+        let maphieu = $('#tim_maphieuXK').val();
+        let sophieu = $('#tim_sophieuXK').val();
+        $.ajax({
+            url: "model/searchPhieuXuatKho.php",
+            type: "POST",
+            data: {
+                id_to: to,
+                ten_vt: ten_vt,
+                maphieu: maphieu,
+                sophieu: sophieu
+            },
+            success: function (res) {
+                $('tbody').html(res);
+
+            }
+        })
+    })
+
+
+    $(document).on('keyup', '#tim_vattuXK', function () {
+        clearTimeout(timer);
+
+        timer = setTimeout(function () {
+            let to = $('#tim_toXK').val();
+            let ten_vt = $('#tim_vattuXK').val();
+            let maphieu = $('#tim_maphieuXK').val();
+            let sophieu = $('#tim_sophieuXK').val();
+            $.ajax({
+                url: "model/searchPhieuXuatKho.php",
+                type: "POST",
+                data: {
+                    id_to: to,
+                    ten_vt: ten_vt,
+                    maphieu: maphieu,
+                    sophieu: sophieu
+                },
+                success: function (res) {
+                    $('tbody').html(res);
+
+                }
+            })
+        }, 500); // CHỈ tìm sau khi người dùng dừng gõ 350ms
+
+    })
 
 
 
@@ -1443,6 +1625,51 @@ let to = $('#tim_to').val();
         });
     });
 
+    $("#form-sua-phieu-xuat-kho").submit(function (e) {
+        e.preventDefault(); // Ngăn gửi form mặc định
+
+        let hopLe = true;
+
+        // Kiểm tra số phiếu
+        const soPhieu = $('input[name="so_phieu"]');
+        if (!soPhieu.val().trim()) {
+
+            hopLe = false;
+            soPhieu.focus();
+            return;
+        }
+
+        const rows = $("#ds-vattu-da-chon tr");
+        rows.each(function () {
+            const slXuatInput = $(this).find(".sl-xuat");
+            const slXuat = parseFloat(slXuatInput.val());
+            const slXuatKho = parseFloat($(this).find(".sl-xuatkho").val());
+            if (!slXuat || slXuat <= 0 || slXuat > slXuatKho) {
+                slXuatInput.focus();
+                hopLe = false;
+                return false;
+            }
+        });
+
+        if (!hopLe) {
+            return;
+        }
+
+        // Nếu hợp lệ thì gửi
+        $.post("model/suaPhieuXuatKho.php", $(this).serialize(), function (res) {
+            if (res.trim() === "success") {
+                // Nếu cần thông báo trước khi reload
+                showToast("Cập nhật thành công", "success");
+                setTimeout(() => {
+                    location.reload();
+                }, 1000); // đợi 0.5s cho toast hiển thị
+            } else {
+                showToast("Có lỗi xảy ra khi cập nhật", "error");
+            }
+
+        });
+    });
+
 
     $("#form-sua-phieu-ung").submit(function (e) {
         e.preventDefault(); // Ngăn gửi form mặc định
@@ -1705,6 +1932,140 @@ let to = $('#tim_to').val();
 
     });
 
+    //Phần số lượng kế toán xuất
+    //Mowr modal them moi
+    $(document).on('click', '.btn_themPXK', function () {
+        const idvattu = $(this).data('idvattu');
+        const idpx = $(this).data('idpx');
+
+        $.ajax({
+            url: 'model/infoPhieuXuatKho.php',
+            method: 'POST',
+            data: {
+                idvattu: idvattu,
+                idpx: idpx,
+            },
+            success: function (data) {
+                $('#dsThemMoiPX').html(data);
+                $('#modalThemMoiPXK').modal('show');
+            }
+        });
+
+
+    });
+
+
+    //Gợi ý mã phiếu xuất kho
+    $(document).on('input', '#maPXK', function () {
+        clearTimeout(timer);
+
+        let maphieu = $(this).val().trim();
+
+        if (maphieu.length < 1) {
+            $('#goiYPhieuXuat').empty();
+            return;
+        }
+
+        timer = setTimeout(function () {
+
+            $.ajax({
+                url: 'model/goiYPhieuXuatKho.php',
+                type: 'POST',
+                data: {
+                    maphieu: maphieu
+                },
+                success: function (data) {
+                    $('#goiYPhieuXuat').html(data);
+
+                }
+            });
+
+        }, 500);
+
+    });
+
+    $(document).on('click', '.item-goi-y', function () {
+
+        let maphieu = $(this).data('maphieu');
+
+        $('#maPXK').val(maphieu);
+
+        $('#goiYPhieuXuat').empty();
+
+    });
+
+    $('#form-them-moi-PXK').submit(function (e) {
+        e.preventDefault();
+
+        let data = $(this).serialize();
+
+
+        $.ajax({
+            url: 'model/addPhieuXuatKho.php',
+            method: 'POST',
+            data: data,
+            success: function (res) {
+                if (res.trim() === "success") {
+                    // 1. Đóng modal
+                    $('#modalThemMoiPXK').modal('hide');
+
+                    // Nếu cần thông báo trước khi reload
+                    showToast("Cập nhật thành công", "success");
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000); // đợi  cho toast hiển thị
+
+
+                } else {
+                    showToast('Cập nhật thất bại', 'error');
+                }
+
+            },
+        })
+    })
+
+
+    $(document).on('click', '.btn_lichsuPXK', function () {
+        const idvattu = $(this).data('idvattu');
+        const idpx = $(this).data('idpx');
+
+        $.ajax({
+            url: 'model/lichSuPhieuXuatKho.php',
+            method: 'POST',
+            data: {
+                idvattu: idvattu,
+                idpx: idpx,
+            },
+            success: function (data) {
+                $('#dsLichSuPX').html(data);
+                $('#modalLichSuPXK').modal('show');
+            }
+        });
+
+
+    });
+
+    //Xoá vật tư phiếu xuất kho
+    $(document).on("click", ".xoa-vattu-xuatkho", function () {
+        let px = $(this).data('idpx');
+        let vattu = $(this).data('vattu');
+        let pxk = $(this).data('idpxk');
+        const row = $(this).closest("tr");
+        const id = row.data("id");
+        $.ajax({
+            url: 'model/xoaVattuPhieuXuatKho.php',
+            method: 'POST',
+            data: { px: px, vattu: vattu, pxk: pxk },
+            success: function (res) {
+                if (res.trim() == "success") {
+                    row.remove();
+                    showToast('Đã xóa vật tư khỏi danh sách', 'success');
+                }
+            },
+
+        });
+
+    });
 
 
 });

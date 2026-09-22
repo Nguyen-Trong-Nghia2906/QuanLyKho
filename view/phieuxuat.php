@@ -37,7 +37,7 @@
   <div class="mb-2 text-end">
     <?php
     if ($_SESSION['quyen'] == 1) {
-    ?>
+      ?>
       <a href="?v=tao_phieuxuat" class="btn btn-success mt-2 mt-md-0">+ Thêm phiếu xuất</a>
 
     <?php } ?>
@@ -59,7 +59,13 @@
             ?>
           </select></th>
         <th class="d-none d-md-table-cell"><input type="date" id="tim_ngayxuat" class="form-control"></th>
-        <th colspan="2" class="text-center"><input type="text" id="tim_vattu" class="form-control" placeholder="Tìm tên vật tư"></th>
+        <th class="d-none d-md-table-cell"><select name="" class="form-select" id="tim_trangthai">
+            <option value="2"> --- </option>
+            <option value="1">Hoàn thành</option>
+            <option value="0">Chưa hoàn thành</option>
+          </select></th>
+        <th colspan="2" class="text-center"><input type="text" id="tim_vattu" class="form-control"
+            placeholder="Tìm tên vật tư"></th>
       </tr>
     </thead>
     <thead class="table-light">
@@ -68,6 +74,7 @@
         <th>Họ tên</th>
         <th class="d-none d-md-table-cell">Tổ</th>
         <th class="d-none d-md-table-cell">Ngày xuất</th>
+        <th>Trạng thái</th>
         <th class="d-none d-md-table-cell">Ghi chú</th>
         <th class="text-center">Chi tiết</th>
       </tr>
@@ -75,7 +82,7 @@
     <tbody>
       <?php
       // $sql = "SELECT * FROM phieuxuat WHERE ngayxuat = '".date("Y/m/d")."'";
-      $sql = "SELECT * FROM phieuxuat ORDER BY id DESC LIMIT 100";
+      $sql = "SELECT * FROM phieuxuat ORDER BY id DESC LIMIT 50";
 
       $result = mysqli_query($conn, $sql);
       while ($phieuxuat = mysqli_fetch_assoc($result)) { ?>
@@ -83,12 +90,20 @@
           <td><?php echo $phieuxuat['maphieu'] ?></td>
           <td><?php echo getNameNV($conn, $phieuxuat['id_nhanvien']) ?></td>
           <td class="d-none d-md-table-cell"><?php echo getNameTo($conn, $phieuxuat['id_nhanvien']) ?></td>
-          <td class="d-none d-md-table-cell"><?php echo date('d/m/Y', strtotime($phieuxuat['ngayxuat']))  ?></td>
+          <td class="d-none d-md-table-cell"><?php echo date('d/m/Y', strtotime($phieuxuat['ngayxuat'])) ?></td>
+          <td style="width:10%; text-align:center"><?php
+          if ($phieuxuat['trang_thai'] == 0) {
+            echo "<i class='text-warning bi bi-hourglass-split'></i>";
+          } else {
+            echo "<i class=' text-success bi bi-check-circle'></i>";
+
+          }
+          ?></td>
           <td><?php echo $phieuxuat['ghichu'] ?></td>
           <td class="text-center pointer text-primary open-details">▶</td>
         </tr>
         <tr class="details">
-          <td colspan="6" style="background-color: #f1f1f1;">
+          <td colspan="7" style="background-color: #f1f1f1;">
             <div class="details-container">
               <div class="details-title">Danh sách vật tư</div>
               <div class="table-responsive">
@@ -100,6 +115,7 @@
                       <th>Tên VT</th>
                       <th>ĐVT</th>
                       <th>Số lượng</th>
+                      <th>Chưa xuất kho</th>
                       <th>Mục đích</th>
                     </tr>
                   </thead>
@@ -111,12 +127,31 @@
                     while ($chitiet = mysqli_fetch_assoc($result2)) { ?>
                       <tr>
                         <td><?php echo $stt;
-                            $stt++; ?></td>
+                        $stt++; ?></td>
                         <td><?php echo getMaVT($conn, $chitiet['id_vattu']) ?></td>
                         <td><?php echo getTenVT($conn, $chitiet['id_vattu']) ?></td>
                         <td><?php echo getDvtVT($conn, $chitiet['id_vattu']) ?></td>
                         <td><?php echo $chitiet['soluong'] ?></td>
+                        <?php
+                        if (getSLXK($conn, $phieuxuat['id'], $chitiet['id_vattu']) > 0) {
+
+                          ?>
+                          <td><button data-idPX="<?php echo $phieuxuat['id'] ?>"
+                              data-idVattu="<?php echo $chitiet['id_vattu'] ?>"
+                              class='btn_lichsuPXK btn btn-sm btn-outline-warning'><?php echo getSLXK($conn, $phieuxuat['id'], $chitiet['id_vattu']); ?></button>
+                          </td>
+                          <?php
+                        } else {
+                          ?>
+                          <td><button data-idPX="<?php echo $phieuxuat['id'] ?>"
+                              data-idVattu="<?php echo $chitiet['id_vattu'] ?>"
+                              class='btn_lichsuPXK btn btn-sm btn-outline-success'><?php echo getSLXK($conn, $phieuxuat['id'], $chitiet['id_vattu']); ?></button>
+                          </td>
+                          <?php
+                        }
+                        ?>
                         <td><?php echo $chitiet['mucdich'] ?></td>
+
                       </tr>
                     <?php } ?>
                   </tbody>
@@ -124,7 +159,7 @@
               </div>
               <div class="mt-2 text-end">
                 <?php if ($_SESSION['quyen'] == 1) {
-                ?>
+                  ?>
                   <a href="?v=sua_phieuxuat&id_px=<?php echo $phieuxuat['id'] ?>" class="btn btn-sm btn-warning px-3">
                     Chỉnh sửa
                   </a>
@@ -156,6 +191,22 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
         <button type="button" class="btn btn-danger" id="xacNhanXoaPX">Xóa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Lịch sử phiếu xuất kho -->
+<div class="modal fade" id="modalLichSuPXK" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">📜 Lịch sử vật tư</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="dsLichSuPX">
+        Đang tải dữ liệu...
       </div>
     </div>
   </div>

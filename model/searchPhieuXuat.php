@@ -9,6 +9,13 @@ $ten_nv = $_POST['ten_nv'] ?? '';
 $ngayxuat = $_POST['ngayxuat'] ?? '';
 $ten_vt = $_POST['ten_vt'] ?? '';
 
+if ($_POST['trangthai'] == 2) {
+    $trangthai = '';
+} else {
+    $trangthai = $_POST['trangthai'];
+}
+
+
 // Bắt đầu truy vấn phiếu xuất
 $sql = "SELECT 
     px.*, 
@@ -36,6 +43,10 @@ if (!empty($ngayxuat)) {
     $sql .= " AND px.ngayxuat = '$ngayxuat'";
 }
 
+if ($trangthai == 1 || $trangthai == 0) {
+    $sql .= " AND px.trang_thai = '$trangthai'";
+}
+
 // Nếu có lọc theo tên vật tư thì phải kiểm tra bảng chi tiết
 if (!empty($ten_vt)) {
     $sql .= " AND px.id IN (
@@ -46,7 +57,7 @@ if (!empty($ten_vt)) {
              )";
 }
 
-$sql .= " ORDER BY px.ngayxuat DESC, px.id DESC";
+$sql .= " ORDER BY px.ngayxuat DESC, px.id DESC   LIMIT 20 ";
 $result = mysqli_query($conn, $sql);
 ?>
 
@@ -58,12 +69,22 @@ while ($phieuxuat = mysqli_fetch_assoc($result)) { ?>
         <td><?php echo $phieuxuat['maphieu'] ?></td>
         <td><?php echo $phieuxuat['hoten'] ?></td>
         <td class="d-none d-md-table-cell"><?php echo $phieuxuat['tento'] ?></td>
-        <td class="d-none d-md-table-cell"><?php echo date('d/m/Y', strtotime($phieuxuat['ngayxuat']))  ?></td>
+        <td class="d-none d-md-table-cell"><?php echo date('d/m/Y', strtotime($phieuxuat['ngayxuat'])) ?></td>
+        <td style="width:10%; text-align:center">
+            <?php
+            if ($phieuxuat['trang_thai'] == 0) {
+                echo "<i class='text-warning bi bi-hourglass-split'></i>";
+            } else {
+                echo "<i class=' text-success bi bi-check-circle'></i>";
+
+            }
+            ?>
+        </td>
         <td><?php echo $phieuxuat['ghichu'] ?></td>
         <td class="text-center pointer text-primary open-details">▶</td>
     </tr>
     <tr class="details">
-        <td colspan="6" style="background-color: #f1f1f1;">
+        <td colspan="7" style="background-color: #f1f1f1;">
             <div class="details-container">
                 <div class="details-title">Danh sách vật tư</div>
                 <div class="table-responsive">
@@ -75,6 +96,7 @@ while ($phieuxuat = mysqli_fetch_assoc($result)) { ?>
                                 <th>Tên VT</th>
                                 <th>ĐVT</th>
                                 <th>Số lượng</th>
+                                <th>Chưa xuất kho</th>
                                 <th>Mục đích</th>
                             </tr>
                         </thead>
@@ -90,17 +112,37 @@ while ($phieuxuat = mysqli_fetch_assoc($result)) { ?>
                             JOIN vattu vt ON ct.id_vattu = vt.id
                             WHERE ct.id_phieuxuat = '" . $phieuxuat['id'] . "'
                             ";
-                           
+
                             $result2 = mysqli_query($conn, $sql2);
                             $stt = 1;
                             while ($chitiet = mysqli_fetch_assoc($result2)) { ?>
                                 <tr>
                                     <td><?php echo $stt;
-                                        $stt++; ?></td>
+                                    $stt++; ?></td>
                                     <td><?php echo $chitiet['mahang'] ?></td>
                                     <td><?php echo $chitiet['tenhang'] ?></td>
                                     <td><?php echo $chitiet['dvt'] ?> </td>
                                     <td><?php echo $chitiet['soluong'] ?></td>
+                                    <?php
+                                    if ($chitiet['xuat_kho'] > 0) {
+
+                                        ?>
+                                        <td><button data-idPX="<?php echo $phieuxuat['id'] ?>"
+                                                data-idVattu="<?php echo $chitiet['id_vattu'] ?>"
+                                                class='btn_lichsuPXK btn btn-sm btn-outline-warning'>
+                                                <?php echo $chitiet['xuat_kho']; ?>
+                                            </button></td>
+                                        <?php
+                                    } else {
+                                        ?>
+                                        <td><button data-idPX="<?php echo $phieuxuat['id'] ?>"
+                                                data-idVattu="<?php echo $chitiet['id_vattu'] ?>"
+                                                class='btn_lichsuPXK btn btn-sm btn-outline-success'>
+                                                <?php echo $chitiet['xuat_kho']; ?>
+                                            </button></td>
+                                        <?php
+                                    }
+                                    ?>
                                     <td><?php echo $chitiet['mucdich'] ?></td>
                                 </tr>
                             <?php } ?>
@@ -109,7 +151,7 @@ while ($phieuxuat = mysqli_fetch_assoc($result)) { ?>
                 </div>
                 <div class="mt-2 text-end">
                     <?php if ($_SESSION['quyen'] == 1) {
-                    ?>
+                        ?>
                         <a href="?v=sua_phieuxuat&id_px=<?php echo $phieuxuat['id'] ?>" class="btn btn-sm btn-warning px-3">
                             Chỉnh sửa
                         </a>

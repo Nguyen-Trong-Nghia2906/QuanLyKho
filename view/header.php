@@ -149,7 +149,9 @@ navigator.serviceWorker.register('/service-worker.js');
           <li   class="nav-item"><a  id="phieunhap" class="nav-link" href="?v=phieunhap"><i class="bi bi-arrow-down-left-circle"></i>Phiếu Nhập</a></li>
           <li  class="nav-item"><a id="nhanvien" class="nav-link" href="?v=nhanvien"><i class="bi bi-people-fill"></i> Nhân viên</a></li>
           <li  class="nav-item"><a id="to" class="nav-link" href="?v=to"><i class="bi bi-microsoft-teams"></i> Tổ</a></li>
-          <li  class="nav-item"><a id="tonghop" class="nav-link" href="?v=tonghop"><i class="bi bi-reception-4"></i> Tổng hợp</a></li>
+          <li  class="nav-item"><a id="phieuxuat_kho" class="nav-link" href="?v=phieuxuat_kho"><i class="bi bi-journal-check"></i> Phiếu xuất kho</a></li>
+          
+          <!-- <li  class="nav-item"><a id="tonghop" class="nav-link" href="?v=tonghop"><i class="bi bi-reception-4"></i> Tổng hợp</a></li> -->
           <li  class="nav-item mobile">
             <a class="nav-link" href="#"><i class="bi bi-person-circle"></i> <?php echo $_SESSION['hoten'] ?? 'Chưa đăng nhập'; ?></a>
           </li>

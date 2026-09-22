@@ -33,8 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $sl = floatval($soLuongArr[$i]);
       $md = mysqli_real_escape_string($conn, $mucDichArr[$i]);
 
-      $sqlChiTiet = "INSERT INTO chitiet_phieuxuat (id_phieuxuat, id_vattu, soluong, mucdich) 
-                     VALUES ('$id_phieuxuat', '$idVT', '$sl', '$md')";
+      $sqlChiTiet = "INSERT INTO chitiet_phieuxuat (id_phieuxuat, id_vattu, soluong, mucdich, xuat_kho) 
+                     VALUES ('$id_phieuxuat', '$idVT', '$sl', '$md', '$sl')";
 
       if (!mysqli_query($conn, $sqlChiTiet)) {
         $thanhCong = false;
@@ -45,15 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $updateKho = "UPDATE vattu SET soluong = soluong - '$sl' WHERE id = '$idVT'";
       mysqli_query($conn, $updateKho);
 
-      //Lấy số lượng tồn sau khi cập nhật
-      $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
-      $result = mysqli_query($conn, $sql);
-      $row = mysqli_fetch_assoc($result);
-      $tonluyke = $row['soluong'];
+      // //Lấy số lượng tồn sau khi cập nhật
+      // $sql = "SELECT soluong FROM vattu WHERE id = $idVT";
+      // $result = mysqli_query($conn, $sql);
+      // $row = mysqli_fetch_assoc($result);
+      // $tonluyke = $row['soluong'];
 
-      //Cập nhật tồn luỹ kế
-      $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
-      mysqli_query($conn, $updateLuyke);
+      // //Cập nhật tồn luỹ kế
+      // $updateLuyke = "UPDATE chitiet_phieuxuat SET ton_luyke = '$tonluyke' WHERE id_phieuxuat = '$id_phieuxuat' AND id_vattu = '$idVT'";
+      // mysqli_query($conn, $updateLuyke);
     }
 
     if ($thanhCong) {
