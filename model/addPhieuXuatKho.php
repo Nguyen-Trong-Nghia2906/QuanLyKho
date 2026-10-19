@@ -27,8 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($check) {
+        $soluong = floatval($soluong);
         if(checkCTPXK2($conn, $id_phieuxuatkho, $idvattu) > 0){
-            $sqlChiTiet = "UPDATE `chitiet_phieuxuatkho` SET soluong = soluong + $soluong WHERE id_phieuxuatkho = $id_phieuxuatkho AND id_vattu = '$idvattu'";
+            $sqlChiTiet = "UPDATE `chitiet_phieuxuatkho` SET soluong = ROUND(soluong + $soluong,2) WHERE id_phieuxuatkho = $id_phieuxuatkho AND id_vattu = '$idvattu'";
         }
         else{
             $sqlChiTiet = "INSERT INTO `chitiet_phieuxuatkho`(`id_phieuxuatkho`, `id_vattu`, `soluong`) VALUES ('$id_phieuxuatkho','$idvattu','$soluong')";
@@ -36,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (mysqli_query($conn, $sqlChiTiet)) {
             //Cập nhật số lượng còn lại
-            if (mysqli_query($conn, "UPDATE `chitiet_phieuxuat` SET `xuat_kho` = `xuat_kho` - $soluong WHERE id_phieuxuat = '$idpx' AND id_vattu = '$idvattu'")) {
+            if (mysqli_query($conn, "UPDATE `chitiet_phieuxuat` SET `xuat_kho` = ROUND(`xuat_kho` - $soluong,2) WHERE id_phieuxuat = '$idpx' AND id_vattu = '$idvattu'")) {
                 if(checkTrangThaiCTPX($conn, $idpx) == 0){
                     mysqli_query($conn, "UPDATE `phieuxuat` SET `trang_thai` = 1 WHERE id = '$idpx'");
                 }
